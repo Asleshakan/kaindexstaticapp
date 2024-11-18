@@ -24,24 +24,33 @@
         xhrFields: {
           responseType: 'arraybuffer' // Handle binary data as an array buffer
         },
-        success: function (compressedData) {
+        success: function (compressedData, status, xhr) {
           try {
-            // Log compressed data for debugging
-            console.log("Compressed data received:", compressedData);
+            // Check if the data is already decompressed
+            const contentEncoding = xhr.getResponseHeader("Content-Encoding");
+            console.log("Content-Encoding:", contentEncoding);
 
-            // Convert to Uint8Array for decompression
-            const uint8Array = new Uint8Array(compressedData);
-            console.log("Uint8Array representation:", uint8Array);
+            let geojson;
 
-            // Decompress using pako
-            const decompressedData = pako.ungzip(uint8Array, { to: 'string' });
-            console.log("Decompressed data:", decompressedData);
+            if (contentEncoding === "gzip") {
+              // Convert to Uint8Array for decompression
+              const uint8Array = new Uint8Array(compressedData);
+              console.log("Uint8Array representation:", uint8Array);
 
-            // Parse decompressed data as JSON
-            const geojson = JSON.parse(decompressedData);
+              // Decompress using pako
+              const decompressedData = pako.ungzip(uint8Array, { to: 'string' });
+              console.log("Decompressed data:", decompressedData);
+
+              // Parse decompressed data as JSON
+              geojson = JSON.parse(decompressedData);
+            } else {
+              // If already decompressed, parse directly
+              const textData = new TextDecoder().decode(compressedData);
+              console.log("Already decompressed data:", textData);
+              geojson = JSON.parse(textData);
+            }
+
             console.log("GeoJSON parsed successfully:", geojson);
-
-            // Display success message
             output.innerText = "Data loaded successfully.";
           } catch (error) {
             console.error("Error processing GeoJSON data:", error);
