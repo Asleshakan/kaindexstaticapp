@@ -9,8 +9,16 @@
     ".json": "application/json",
     ".gz": "application/gzip"
   },
-  "globalHeaders": {
-    "Cache-Control": "no-cache, no-store, must-revalidate",
-    "Content-Encoding": "gzip"
+  "navigationFallback": {
+    "rewrite": "/index.html",
+    "exclude": ["/new_data.gz"]
+  },
+  "responseOverrides": {
+    "/new_data.gz": {
+      "headers": {
+        "Content-Encoding": "gzip",
+        "Cache-Control": "no-cache, no-store, must-revalidate"
+      }
+    }
   }
 }
