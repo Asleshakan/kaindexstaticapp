@@ -3,55 +3,52 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Load .gz and .json Files</title>
+  <title>Load Compressed GeoJSON</title>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.4/jquery.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/pako/2.1.0/pako.min.js"></script>
 </head>
 <body>
-  <h1>Load .gz and .json Files</h1>
+  <h1>Load Compressed GeoJSON Data</h1>
   <button id="loadData">Load Data</button>
-  <div id="output"></div>
+  <div id="output" style="margin-top: 20px;"></div>
 
   <script>
     document.getElementById("loadData").addEventListener("click", function () {
       const output = document.getElementById("output");
       output.innerText = "Loading data...";
 
-      // Fetch the compressed GeoJSON data
       $.ajax({
         url: '/new_data.gz', // Adjust this path based on deployment
         method: 'GET',
         xhrFields: {
           responseType: 'arraybuffer' // Handle binary data as an array buffer
         },
-        success: function (compressedData, status, xhr) {
+        success: function (compressedData) {
           try {
-            // Check if the data is already decompressed
-            const contentEncoding = xhr.getResponseHeader("Content-Encoding");
-            console.log("Content-Encoding:", contentEncoding);
-
             let geojson;
 
-            if (contentEncoding === "gzip") {
-              // Convert to Uint8Array for decompression
-              const uint8Array = new Uint8Array(compressedData);
-              console.log("Uint8Array representation:", uint8Array);
+            // Attempt decompression directly
+            const uint8Array = new Uint8Array(compressedData);
+            console.log("Uint8Array representation:", uint8Array);
 
+            try {
               // Decompress using pako
               const decompressedData = pako.ungzip(uint8Array, { to: 'string' });
               console.log("Decompressed data:", decompressedData);
 
-              // Parse decompressed data as JSON
+              // Parse JSON
               geojson = JSON.parse(decompressedData);
-            } else {
-              // If already decompressed, parse directly
+            } catch (decompressionError) {
+              console.log("Decompression failed, assuming plain JSON.");
+              // Assume the data is already decompressed
               const textData = new TextDecoder().decode(compressedData);
-              console.log("Already decompressed data:", textData);
               geojson = JSON.parse(textData);
             }
 
             console.log("GeoJSON parsed successfully:", geojson);
             output.innerText = "Data loaded successfully.";
+            // Optionally render the GeoJSON data
+            renderGeoJSONData(geojson);
           } catch (error) {
             console.error("Error processing GeoJSON data:", error);
             output.innerText = "Error processing GeoJSON data. See console for details.";
@@ -63,6 +60,11 @@
         }
       });
     });
+
+    function renderGeoJSONData(data) {
+      const output = document.getElementById("output");
+      output.innerHTML = `<pre>${JSON.stringify(data, null, 2)}</pre>`;
+    }
   </script>
 </body>
 </html>
