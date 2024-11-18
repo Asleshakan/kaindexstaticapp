@@ -1,0 +1,16 @@
+{
+  "routes": [
+    {
+      "route": "/",
+      "rewrite": "/index.html"
+    }
+  ],
+  "mimeTypes": {
+    ".json": "application/json",
+    ".gz": "application/gzip"
+  },
+  "navigationFallback": {
+    "rewrite": "/index.html",
+    "exclude": ["/new_data.gz"]
+  }
+}
