@@ -11,37 +11,33 @@
   <h1>Load Compressed GeoJSON Data</h1>
   <button id="loadData">Load Data</button>
   <div id="output" style="margin-top: 20px;"></div>
-
   <script>
     document.getElementById("loadData").addEventListener("click", function () {
       const output = document.getElementById("output");
       output.innerText = "Loading data...";
-
       $.ajax({
-        url: '/new_data.gz', // Adjust the path based on your deployment setup
+        url: '/new_data.gz', 
         method: 'GET',
         xhrFields: {
-          responseType: 'arraybuffer' // Handle binary data
+          responseType: 'arraybuffer' 
         },
-        success: function (compressedData, status, xhr) {
-          const contentEncoding = xhr.getResponseHeader("Content-Encoding");
-          const isGzip = contentEncoding && contentEncoding.includes("gzip");
-          let geojson;
-
+        success: function (compressedData) {
           try {
-            if (isGzip || compressedData.byteLength > 0) {
-              // Attempt to decompress gzip data
-              const decompressedData = pako.ungzip(new Uint8Array(compressedData), { to: 'string' });
+            let geojson;
+            const uint8Array = new Uint8Array(compressedData);
+            console.log("Uint8Array representation:", uint8Array);
+            try {
+              const decompressedData = pako.ungzip(uint8Array, { to: 'string' });
+              console.log("Decompressed data:", decompressedData);
               geojson = JSON.parse(decompressedData);
-            } else {
-              // Fallback for plain JSON
+            } catch (decompressionError) {
+              console.log("Decompression failed, assuming plain JSON.");
               const textData = new TextDecoder().decode(compressedData);
               geojson = JSON.parse(textData);
             }
-
             console.log("GeoJSON parsed successfully:", geojson);
-            renderGeoJSONData(geojson);
             output.innerText = "Data loaded successfully.";
+            renderGeoJSONData(geojson);
           } catch (error) {
             console.error("Error processing GeoJSON data:", error);
             output.innerText = "Error processing GeoJSON data. See console for details.";
@@ -53,10 +49,9 @@
         }
       });
     });
-
     function renderGeoJSONData(data) {
       const output = document.getElementById("output");
-      output.innerHTML = `<pre>${JSON.stringify(data, null, 2)}</pre>`; // Pretty-print the JSON data
+      output.innerHTML = `<pre>${JSON.stringify(data, null, 2)}</pre>`; 
     }
   </script>
 </body>
