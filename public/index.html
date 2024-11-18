@@ -14,30 +14,43 @@
 
   <script>
     document.getElementById("loadData").addEventListener("click", function () {
+      const output = document.getElementById("output");
+      output.innerText = "Loading data...";
+
       // Fetch the compressed GeoJSON data
       $.ajax({
-        url: '/new_data.gz', // Ensure this path matches your deployment
+        url: '/new_data.gz', // Adjust this path based on deployment
         method: 'GET',
         xhrFields: {
-          responseType: 'arraybuffer' // Handle binary data
+          responseType: 'arraybuffer' // Handle binary data as an array buffer
         },
         success: function (compressedData) {
           try {
-            // Decompress the data
-            const decompressedData = pako.ungzip(new Uint8Array(compressedData), { to: 'string' });
-            
-            // Parse as JSON
-            const geojson = JSON.parse(decompressedData);
-            console.log("GeoJSON data loaded successfully:", geojson);
+            // Log compressed data for debugging
+            console.log("Compressed data received:", compressedData);
 
-            // Display some data
-            document.getElementById("output").innerText = "Data loaded successfully.";
+            // Convert to Uint8Array for decompression
+            const uint8Array = new Uint8Array(compressedData);
+            console.log("Uint8Array representation:", uint8Array);
+
+            // Decompress using pako
+            const decompressedData = pako.ungzip(uint8Array, { to: 'string' });
+            console.log("Decompressed data:", decompressedData);
+
+            // Parse decompressed data as JSON
+            const geojson = JSON.parse(decompressedData);
+            console.log("GeoJSON parsed successfully:", geojson);
+
+            // Display success message
+            output.innerText = "Data loaded successfully.";
           } catch (error) {
             console.error("Error processing GeoJSON data:", error);
+            output.innerText = "Error processing GeoJSON data. See console for details.";
           }
         },
         error: function (xhr, status, error) {
           console.error("Failed to fetch compressed data:", error);
+          output.innerText = `Failed to fetch data: ${status}`;
         }
       });
     });
