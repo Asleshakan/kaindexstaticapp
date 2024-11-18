@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Load .gz and .json Files</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.4/jquery.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/pako/2.1.0/pako.min.js"></script>
+</head>
+<body>
+  <h1>Load .gz and .json Files</h1>
+  <button id="loadData">Load Data</button>
+  <div id="output"></div>
+
+  <script>
+    document.getElementById("loadData").addEventListener("click", function () {
+      // Fetch the compressed GeoJSON data
+      $.ajax({
+        url: '/new_data.gz', // Ensure this path matches your deployment
+        method: 'GET',
+        xhrFields: {
+          responseType: 'arraybuffer' // Handle binary data
+        },
+        success: function (compressedData) {
+          try {
+            // Decompress the data
+            const decompressedData = pako.ungzip(new Uint8Array(compressedData), { to: 'string' });
+            
+            // Parse as JSON
+            const geojson = JSON.parse(decompressedData);
+            console.log("GeoJSON data loaded successfully:", geojson);
+
+            // Display some data
+            document.getElementById("output").innerText = "Data loaded successfully.";
+          } catch (error) {
+            console.error("Error processing GeoJSON data:", error);
+          }
+        },
+        error: function (xhr, status, error) {
+          console.error("Failed to fetch compressed data:", error);
+        }
+      });
+    });
+  </script>
+</body>
+</html>
